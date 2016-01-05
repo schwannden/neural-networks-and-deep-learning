@@ -61,7 +61,7 @@ class Network(object):
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
         for w in self.weights:
-            a = sigmoid(np.dot(w, a))
+            a = sigmoid(np.dot(w, append(a)))
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta, test_data=None):
@@ -116,16 +116,14 @@ class Network(object):
         zs = [] # list to store all the z vectors, layer by layer
         # for b, w in zip(self.biases, self.weights):
         for w in self.weights:
-            z = np.dot(w, activation)
+            appended_activation = append(activation)
+            z = np.dot(w, appended_activation)
             zs.append(z)
-            activation = np.append(sigmoid(z), 1)
-            activation = np.reshape(activation, (len(activation), 1))
+            activation = sigmoid(z)
             activations.append(activation)
-        # Delete the appended 1 for last activation, since it's output already
-        activations[-1] = np.delete(activations[-1], -1, 0)
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
-        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+        nabla_w[-1] = np.dot(delta, append(activations[-2]).transpose())
         # Note that the variable l in the loop below is used a little
         # differently to the notation in Chapter 2 of the book.  Here,
         # l = 1 means the last layer of neurons, l = 2 is the
@@ -134,13 +132,12 @@ class Network(object):
         # that Python can use negative indices in lists.
         for l in xrange(2, self.num_layers):
             z = zs[-l]
-            sp = np.append(sigmoid_prime(z), 1)
-            sp = np.reshape(sp, (len(sp), 1))
-            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
-            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+            sp = sigmoid_prime(z)
+            delta = np.dot(restore(self.weights[-l+1].transpose()), delta) * sp
+            nabla_w[-l] = np.dot(delta, append(activations[-l-1]).transpose())
         return nabla_w
 
-    def erandomrando(self, test_data):
+    def evaluate(self, test_data):
         """Return the number of test inputs for which the neural
         network outputs the correct result. Note that the neural
         network's output is assumed to be the index of whichever
@@ -161,3 +158,12 @@ def sigmoid(z):
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+
+def append(x):
+    x = np.append(x, 1)
+    x = np.reshape(x, (len(x), 1))
+    return x
+
+def restore(x):
+    x = np.delete(x, -1, 0)
+    return x
