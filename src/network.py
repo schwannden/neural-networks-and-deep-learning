@@ -35,6 +35,7 @@ nodes  *   ...     *     ...   *
 # Standard library
 import random
 import pdb
+import time
 
 # Third-party libraries
 import numpy as np
@@ -77,6 +78,7 @@ class Network(object):
             n_test = len(test_data)
         n = len(training_data)
         for j in xrange(epochs):
+            start_time = time.clock()
             random.shuffle(training_data)
             mini_batches = [
                 training_data[k:k+mini_batch_size]
@@ -84,8 +86,8 @@ class Network(object):
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                print "Epoch {0}: {1} / {2}".format(
-                    j, self.evaluate(test_data), n_test)
+                print "Epoch {0}: {1} / {2} --- duration: {3}".format(
+                    j, self.evaluate(test_data), n_test, time.clock() - start_time)
             else:
                 print "Epoch {0} complete".format(j)
 
